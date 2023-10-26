@@ -13,6 +13,15 @@ class AMyProjectGameMode : public AGameModeBase
 
 public:
 	AMyProjectGameMode();
+	UFUNCTION(BlueprintCallable)
+	void ActorDied(AActor* DeadActor);
+
+protected:
+
+	virtual void BeginPlay() override;
+
+private:
+	class AMyProjectCharacter* Character;
 };
 
 

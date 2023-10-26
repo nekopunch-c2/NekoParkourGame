@@ -14,7 +14,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Engine/LocalPlayer.h"
-
+#include "Kismet/GameplayStatics.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -54,7 +54,6 @@ void AMyProjectCharacter::BeginPlay()
 	Super::BeginPlay();
 	// Add Input Mapping Context
 	//World = GetWorld();
-
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -66,6 +65,8 @@ void AMyProjectCharacter::BeginPlay()
 
 	CurrentTimeHook = TimerStartHook;
 }
+
+
 
 void AMyProjectCharacter::Tick(float DeltaTime)
 {
@@ -101,7 +102,7 @@ void AMyProjectCharacter::Tick(float DeltaTime)
 	}
 	else
 	{
-		UE_LOG(LogTemplateCharacter, Error, TEXT("No PlayerControloler found."));
+		UE_LOG(LogTemplateCharacter, Error, TEXT("No PlayerController found."));
 	}
 
 	CharacterMovementComponent->JumpZVelocity = (JumpHeight + JumpHeightUpper * DeltaTime);
@@ -130,11 +131,6 @@ void AMyProjectCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AMyProjectCharacter::StartCrouch);
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &AMyProjectCharacter::StopCrouch);
 
-		//running
-
-		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &AMyProjectCharacter::Run);
-		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AMyProjectCharacter::StopRunning);
-
 		//firing hook
 
 		EnhancedInputComponent->BindAction(FireHookAction, ETriggerEvent::Triggered, this, &AMyProjectCharacter::FireHook);
@@ -153,15 +149,9 @@ void AMyProjectCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	}
 }
 
-
-
-void AMyProjectCharacter::Run()
+void AMyProjectCharacter::IsDead()
 {
-	IsRunning = true;
-}
-void AMyProjectCharacter::StopRunning()
-{
-	IsRunning = false;
+	UGameplayStatics::OpenLevel(this, LoadLevelName, false);
 }
 
 void AMyProjectCharacter::StartCrouch()
@@ -212,7 +202,7 @@ void AMyProjectCharacter::Move(const FInputActionValue& Value)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Cintrikker not found!"));
+		UE_LOG(LogTemp, Error, TEXT("Controller not found!"));
 	}
 }
 
@@ -310,7 +300,6 @@ bool AMyProjectCharacter::ShouldWallrun()
 
 void AMyProjectCharacter::WallRun()
 {
-	//gravity less, slide more, if not move more gravity faster, if touching floor out of wall run	
 	bIsWallRunning = true;
 
 	FVector Velocity = GetCharacterMovement()->Velocity;
@@ -348,23 +337,17 @@ void AMyProjectCharacter::JumpFromWall()
 		if (WallOnTheLeft)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("If WallOnTheLeft"));
-			//calculate direction
 			FVector JumpLeftDirection = HitNormalLeft;
 			FVector JumpForce = JumpLeftDirection * JumpOffWallForce + FVector(0.0f, 0.0f, JumpHeightWall);
 			LaunchCharacter(JumpForce, false, false);
-			//reset z velocity
-			//jump right
 
 
 		}
 		else if (WallOnTheRight)
 		{
-			//calculate diretion
 			FVector JumpRightDirection = HitNormalRight;
 			FVector JumpForce = JumpRightDirection * JumpOffWallForce + FVector(0.0f, 0.0f, JumpHeightWall);
 			LaunchCharacter(JumpForce, false, false);
-			//reset z velocity
-			//jump left
 		}
 	}
 }

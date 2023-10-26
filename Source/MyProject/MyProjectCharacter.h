@@ -147,7 +147,8 @@ class AMyProjectCharacter : public ACharacter
 
 	float CurrentTimeHook = 0;
 
-
+	UPROPERTY(EditAnywhere)
+	FName LoadLevelName;
 	//UCableComponent* CableComponent = nullptr;
 
 
@@ -176,6 +177,8 @@ public:
 	bool bHasFiredHook = false;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FVector HookHit;
+	UFUNCTION(BlueprintCallable)
+	void IsDead();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsHooking = false;
@@ -218,9 +221,6 @@ protected:
 	bool ShouldHook();
 
 	void Slide();
-
-	void Run();
-	void StopRunning();
 
 	void StartCrouch();
 	void StopCrouch();

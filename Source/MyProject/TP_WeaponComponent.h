@@ -19,11 +19,14 @@ public:
 	TSubclassOf<class AMyProjectProjectile> ProjectileClass;
 
 	/** Sound to play each time we fire */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
 	USoundBase* FireSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
+	UParticleSystem* FireParticle;
 	
 	/** AnimMontage to play each time we fire */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
 	UAnimMontage* FireAnimation;
 
 	/** Gun muzzle's offset from the characters location */

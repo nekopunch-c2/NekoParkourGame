@@ -2,6 +2,9 @@
 
 
 #include "HealthComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "MyProjectGameMode.h"
+#include "MyProjectCharacter.h"
 
 // Sets default values for this component's properties
 UHealthComponent::UHealthComponent()
@@ -21,14 +24,35 @@ void UHealthComponent::BeginPlay()
 
 	Health = MaxHealth;
 	
+	Character = Cast<AMyProjectCharacter>(UGameplayStatics::GetPlayerPawn(this, 0));
+
+	GetOwner()->OnTakeAnyDamage.AddDynamic(this, &UHealthComponent::DamageTaken);
+	GameMode = Cast<AMyProjectGameMode>(UGameplayStatics::GetGameMode(this));
 }
 
+
+void UHealthComponent::DamageTaken(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* Instigator, AActor* DamageCauser)
+{
+	if (Damage <= 0) return;
+
+	Health -= Damage;
+	
+	bIsTakingDamage = true;
+
+	UE_LOG(LogTemp, Warning, TEXT("Health: %f"), Health);
+
+	if (Health <= 0 && GameMode)
+	{
+		GameMode->ActorDied(DamagedActor);
+	}
+}
 
 // Called every frame
 void UHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	//if (bIsTakingDamage)
+	//	bIsTakingDamage = false;
 }
 

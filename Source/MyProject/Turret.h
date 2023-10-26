@@ -17,6 +17,21 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = Projectile)
 	TSubclassOf<class AMyProjectProjectile> ProjectileClass;
+	UPROPERTY(EditDefaultsOnly, Category = "Broken Turret")
+	TSubclassOf<class ABrokenTurret> BroketTurretToSpawn;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
+	USoundBase* FireSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
+	UParticleSystem* FireParticle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
+	UParticleSystem* DeathParticle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
+	USoundBase* DeathSound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
+	float ImpulseForce = 10;
+	
 
 protected:
 	// Called when the game starts or when spawned
@@ -47,7 +62,12 @@ private:
 	float TargetAimHeight = 5;
 	UPROPERTY(EditAnywhere, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	float FireRate = 5;
+	UPROPERTY(EditAnywhere, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	float PitchMin = 0.5;
+	UPROPERTY(EditAnywhere, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	float PitchMax = 1.5;
 	FTimerHandle FireRateTimerHandle;
+	bool bIsDead = false;
 
 
 	void Fire();
@@ -58,9 +78,11 @@ private:
 
 	void RotateTurret(FVector TargetToLookAt, float Distance, float DeltaTime);
 
+	USoundAttenuation* SoundAttClass;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-
+	void ManageDeath();
 };

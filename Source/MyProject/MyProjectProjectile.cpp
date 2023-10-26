@@ -3,6 +3,9 @@
 #include "MyProjectProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "GameFramework/DamageType.h"
+#include "Kismet/GameplayStatics.h"
+#include "Turret.h"
 
 AMyProjectProjectile::AMyProjectProjectile() 
 {
@@ -34,11 +37,42 @@ AMyProjectProjectile::AMyProjectProjectile()
 void AMyProjectProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	// Only add impulse and destroy projectile if we hit a physics
-	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherComp->IsSimulatingPhysics())
+	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr))
 	{
-		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+		if (OtherComp->IsSimulatingPhysics())
+		{
+			OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+		}
 
+		auto TheOwner = GetOwner();
+		if (!TheOwner) return;
 
+		auto OwnerInstigator = Owner->GetInstigatorController();
+
+		auto DamageTypeClass = UDamageType::StaticClass();
+
+		if (OtherActor != TheOwner)
+		{
+			UGameplayStatics::ApplyDamage(OtherActor, Damage, OwnerInstigator, this, DamageTypeClass);
+			/*Turret = Cast<ATurret>(ATurret::StaticClass());
+			if (Turret != nullptr)
+			{
+				if (OtherActor == Turret)
+				{
+					if (HitTargetParticle != nullptr)
+					{
+						UGameplayStatics::SpawnEmitterAtLocation(this, HitTargetParticle, GetActorLocation(), GetActorRotation());
+					}
+				}
+				else
+				{*/
+					if (HitParticle != nullptr)
+					{
+						UGameplayStatics::SpawnEmitterAtLocation(this, HitParticle, GetActorLocation(), GetActorRotation());
+					}
+				/*}
+			}*/
+		}
 
 		Destroy();
 	}

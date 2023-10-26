@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "Turret.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "MyProjectProjectile.generated.h"
@@ -22,6 +23,8 @@ class AMyProjectProjectile : public AActor
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	UProjectileMovementComponent* ProjectileMovement;
 
+	class ATurret* Turret;
+
 public:
 	AMyProjectProjectile();
 
@@ -33,5 +36,14 @@ public:
 	USphereComponent* GetCollisionComp() const { return CollisionComp; }
 	/** Returns ProjectileMovement subobject **/
 	UProjectileMovementComponent* GetProjectileMovement() const { return ProjectileMovement; }
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
+	UParticleSystem* HitParticle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
+	UParticleSystem* HitTargetParticle;
+
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage", meta = (AllowPrivateAccess = "true"))
+	float Damage = 15;
 };
 

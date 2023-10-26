@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MyProjectProjectile.h"
 #include "TimerManager.h"
+#include "BrokenTurret.h"
 
 // Sets default values
 ATurret::ATurret()
@@ -37,6 +38,8 @@ void ATurret::BeginPlay()
 	
 	MainCharacter = Cast<AMyProjectCharacter>(UGameplayStatics::GetPlayerPawn(this, 0));
 
+	SoundAttClass = Cast<USoundAttenuation>(USoundAttenuation::StaticClass());
+
 	GetWorldTimerManager().SetTimer(FireRateTimerHandle, this, &ATurret::CheckFireCondition, FireRate, true);
 }
 
@@ -57,7 +60,9 @@ void ATurret::Fire()
 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
 			// Spawn the projectile at the muzzle
-			World->SpawnActor<AMyProjectProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+			auto Projectile = World->SpawnActor<AMyProjectProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+			if (Projectile)
+				Projectile->SetOwner(this);
 		}
 		else
 		{
@@ -68,6 +73,22 @@ void ATurret::Fire()
 	{
 		UE_LOG(LogTemplateCharacter, Error, TEXT("No ProjectileClass found."));
 	}
+	if (FireSound != nullptr)
+	{
+		float Pitch = FMath::RandRange(PitchMin, PitchMax);
+
+
+
+		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetOwner()->GetActorLocation(), 1, Pitch, 0, SoundAttClass);
+	}
+	else
+	{
+		UE_LOG(LogTemplateCharacter, Error, TEXT("No sound found."));
+	}
+	if (FireParticle != nullptr)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(this, FireParticle, ProjectileSpawnPoint->GetComponentLocation(), ProjectileSpawnPoint->GetComponentRotation(), true);
+	}
 }
 
 void ATurret::CheckFireCondition()
@@ -77,6 +98,44 @@ void ATurret::CheckFireCondition()
 	{
 		Fire();
 	}
+}
+
+void ATurret::ManageDeath()
+{
+	//Die = true;
+	//replace with destroyed turret
+	UWorld* const World = GetWorld();
+
+	const FVector SpawnLocation = GetRootComponent()->GetComponentLocation();
+	const FRotator SpawnRotation = GetRootComponent()->GetComponentRotation();
+	FActorSpawnParameters ActorSpawnParams;
+	ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+	if (World != nullptr)
+
+	{
+		World->SpawnActor<ABrokenTurret>(BroketTurretToSpawn, SpawnLocation, SpawnRotation, ActorSpawnParams);
+	}
+	UGameplayStatics::SpawnEmitterAtLocation(this, DeathParticle, ProjectileSpawnPoint->GetComponentLocation(), ProjectileSpawnPoint->GetComponentRotation());
+	UPrimitiveComponent* ActorRootComponent = Cast<UPrimitiveComponent>(GetOwner()->GetRootComponent());
+
+	if (ActorRootComponent)
+	{
+		FVector ImpulseLocation = ProjectileSpawnPoint->GetComponentLocation();
+		FVector ImpulseVector = FVector(ImpulseForce, ImpulseForce, ImpulseForce);
+		ActorRootComponent->AddImpulseAtLocation(ImpulseVector, ImpulseLocation);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No ActorRootComponent found"))
+	}
+
+	if (DeathSound != nullptr)
+	{
+		float Pitch = FMath::RandRange(PitchMin, PitchMax);
+		UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetOwner()->GetActorLocation(), 1, Pitch);
+	}
+
+	Destroy();
 }
 
 bool ATurret::IsCloseEnough(float Distance)
@@ -112,5 +171,6 @@ void ATurret::Tick(float DeltaTime)
 	{
 		RotateTurret(MainCharacter->GetActorLocation(), Distance, DeltaTime);
 	}
+
 }
 
